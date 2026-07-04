@@ -1,6 +1,6 @@
 {
-  "name": "AI Resume Grader",
-  "description": "Upload PDF or DOCX resumes and get an instant ATS score, matched and missing skills, and detailed tailored improvement suggestions mapped against job descriptions using Google Gemini AI.",
+  "name": "",
+  "description": "",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

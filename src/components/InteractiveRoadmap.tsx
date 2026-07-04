@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { CheckCircle2, ChevronDown, ChevronUp, AlertCircle, PlayCircle, Award, BookOpen, Star } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { showToast } from "../utils/toast";
 
 interface RoadmapProps {
   matchedSkills: string[];
@@ -416,7 +417,7 @@ export default function InteractiveRoadmap({ matchedSkills, missingSkills, jobRo
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          alert("🎉 Ready to apply! Standard ATS score is strong. Let's showcase your project review!");
+                          showToast("🎉 Ready to apply! Standard ATS score is strong. Let's showcase your project review!", "success");
                         }}
                         className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-bold text-xs shadow hover:opacity-90 transition-all"
                       >

@@ -24,182 +24,257 @@ export function generatePDFReport(result: ResumeAnalysis, candidateName: string,
   const setFill = (rgb: number[]) => doc.setFillColor(rgb[0], rgb[1], rgb[2]);
   const setText = (rgb: number[]) => doc.setTextColor(rgb[0], rgb[1], rgb[2]);
 
-  // --- Header Block ---
-  setFill(primaryColor);
-  doc.rect(0, 0, 210, 45, "F");
+  let y = 15;
 
-  // Title text in white
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.text("ATS RESUME EVALUATION REPORT", 15, 20);
+  const drawHeaderBlock = () => {
+    setFill(primaryColor);
+    doc.rect(0, 0, 210, 42, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("ATS RESUME EVALUATION REPORT", 15, 18);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("POWERED BY INTUITIVE GEN-AI SAAS RADAR", 15, 25);
+    doc.text(`DATE GENERATED: ${dateStr.toUpperCase()}`, 15, 32);
+  };
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text("POWERED BY INTUITIVE GEN-AI RADAR", 15, 28);
-  doc.text(`DATE GENERATED: ${dateStr.toUpperCase()}`, 15, 36);
+  const ensureSpace = (heightNeeded: number) => {
+    if (y + heightNeeded > 275) {
+      doc.addPage();
+      // Draw a subtle header on sub pages
+      setFill([15, 23, 42]);
+      doc.rect(0, 0, 210, 15, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text(`ATS RESUME EVALUATION REPORT - ${candidateName.toUpperCase()}`, 15, 10);
+      y = 25;
+    }
+  };
+
+  // Page 1 First Header
+  drawHeaderBlock();
+  y = 52;
 
   // --- Candidate & Role Info Panel ---
   setText(primaryColor);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("CANDIDATE INFORMATION", 15, 58);
-  doc.line(15, 60, 195, 60);
+  doc.setFontSize(11);
+  doc.text("CANDIDATE INFORMATION", 15, y);
+  doc.setDrawColor(borderLine[0], borderLine[1], borderLine[2]);
+  doc.line(15, y + 2, 195, y + 2);
+  y += 8;
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text(`Name:`, 15, 67);
+  doc.setFontSize(9);
+  doc.text("Name:", 15, y);
   doc.setFont("helvetica", "bold");
-  doc.text(`${candidateName}`, 40, 67);
+  doc.text(`${candidateName}`, 45, y);
 
   doc.setFont("helvetica", "normal");
-  doc.text(`Target Position:`, 15, 73);
+  doc.text("Experience:", 115, y);
   doc.setFont("helvetica", "bold");
-  doc.text(`${jobRole}`, 40, 73);
+  doc.text(`${result.years_experience || 0} Years`, 140, y);
+  y += 6;
 
   doc.setFont("helvetica", "normal");
-  doc.text(`Experience:`, 115, 67);
+  doc.text("Target Position:", 15, y);
   doc.setFont("helvetica", "bold");
-  doc.text(`${result.years_experience || 0} Years`, 140, 67);
+  doc.text(`${jobRole}`, 45, y);
 
   doc.setFont("helvetica", "normal");
-  doc.text(`Completeness:`, 115, 73);
+  doc.text("Completeness:", 115, y);
   doc.setFont("helvetica", "bold");
-  doc.text(`${result.resume_completeness}%`, 140, 73);
+  doc.text(`${result.resume_completeness}%`, 140, y);
+  y += 12;
 
   // --- ATS Core Score Banner ---
+  ensureSpace(28);
   setFill(lightBg);
-  doc.rect(15, 82, 180, 26, "F");
+  doc.rect(15, y, 180, 25, "F");
   doc.setDrawColor(borderLine[0], borderLine[1], borderLine[2]);
-  doc.rect(15, 82, 180, 26, "S");
+  doc.rect(15, y, 180, 25, "S");
 
-  // Draw circular score display simulation
-  let ratingLabel = "Excellent";
+  let ratingLabel = "EXCELLENT";
   let scoreColor = successColor;
   if (result.score >= 90) {
-    ratingLabel = "EXCELLENT";
+    ratingLabel = "EXCELLENT MATCH";
     scoreColor = successColor;
   } else if (result.score >= 75) {
     ratingLabel = "GOOD MATCH";
-    scoreColor = [59, 130, 246]; // Blue 500
+    scoreColor = [37, 99, 235]; // Blue 600
   } else if (result.score >= 60) {
-    ratingLabel = "AVERAGE";
+    ratingLabel = "BORDERLINE MATCH";
     scoreColor = [217, 119, 6]; // Amber 600
   } else {
-    ratingLabel = "NEEDS IMPROVEMENT";
+    ratingLabel = "WEAK MATCH";
     scoreColor = dangerColor;
   }
 
   doc.setTextColor(scoreColor[0], scoreColor[1], scoreColor[2]);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(36);
-  doc.text(`${result.score}`, 28, 101);
+  doc.setFontSize(32);
+  doc.text(`${result.score}`, 25, y + 17);
 
-  doc.setFontSize(11);
-  doc.text("/100", 54, 93);
+  doc.setFontSize(10);
+  doc.text("/100", 48, y + 10);
 
   setText(primaryColor);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text(`${ratingLabel}`, 80, 93);
+  doc.setFontSize(12);
+  doc.text(`${ratingLabel}`, 75, y + 9);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.5);
-  doc.text("The score is computed using semantic analysis, keyword matching ratio,", 80, 99);
-  doc.text("action keyword density, experience level correlation, and structural presence.", 80, 104);
+  doc.setFontSize(8.5);
+  doc.text("Calculated dynamically based on real-time parser compliance metrics.", 75, y + 14);
+  doc.text("Evaluating skills density, keyword relevance, work history and spell check audits.", 75, y + 19);
+  y += 33;
 
-  // --- Section: Skills Match & Gaps ---
-  // Matched Skills Box (Left half)
+  // --- Side-by-Side Skills & Gaps ---
+  ensureSpace(50);
+  // Left: Acquired Skills
   setFill([240, 253, 244]); // Light green
-  doc.rect(15, 117, 86, 65, "F");
-  doc.rect(15, 117, 86, 65, "S");
+  doc.rect(15, y, 86, 44, "F");
+  doc.setDrawColor(22, 163, 74);
+  doc.rect(15, y, 86, 44, "S");
 
-  doc.setTextColor(successColor[0], successColor[1], successColor[2]);
+  doc.setTextColor(22, 163, 74);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("MATCHED SKILLS (STRENGTHS)", 20, 124);
-  doc.line(20, 126, 95, 126);
+  doc.setFontSize(9.5);
+  doc.text("ACQUIRED SKILLS (STRENGTHS)", 20, y + 6);
+  doc.line(20, y + 8, 95, y + 8);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setTextColor(50, 50, 50);
-  let yMatch = 132;
-  const matchSlice = result.matched_skills.slice(0, 10);
+  let yMatch = y + 13;
+  const matchSlice = result.matched_skills.slice(0, 5);
   if (matchSlice.length === 0) {
     doc.text("• No specific skills detected.", 22, yMatch);
   } else {
     matchSlice.forEach((skill) => {
-      if (yMatch < 178) {
-        doc.text(`[YES]  ${skill}`, 22, yMatch);
-        yMatch += 5.5;
-      }
+      doc.text(`[YES]  ${skill}`, 22, yMatch);
+      yMatch += 5;
     });
-    if (result.matched_skills.length > 10) {
-      doc.text(`+ ${result.matched_skills.length - 10} more skills matched...`, 22, yMatch);
+    if (result.matched_skills.length > 5) {
+      doc.text(`+ ${result.matched_skills.length - 5} more skills matched...`, 22, yMatch);
     }
   }
 
-  // Missing Skills Box (Right half)
+  // Right: Critical Skill Gaps
   setFill([254, 242, 242]); // Light red
-  doc.rect(109, 117, 86, 65, "F");
-  doc.rect(109, 117, 86, 65, "S");
+  doc.rect(109, y, 86, 44, "F");
+  doc.setDrawColor(220, 38, 38);
+  doc.rect(109, y, 86, 44, "S");
 
-  doc.setTextColor(dangerColor[0], dangerColor[1], dangerColor[2]);
+  doc.setTextColor(220, 38, 38);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("MISSING SKILLS (GAPS)", 114, 124);
-  doc.line(114, 126, 189, 126);
+  doc.setFontSize(9.5);
+  doc.text("CRITICAL SKILL GAPS", 114, y + 6);
+  doc.line(114, y + 8, 189, y + 8);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setTextColor(50, 50, 50);
-  let yMiss = 132;
-  const missingSlice = result.missing_skills.slice(0, 10);
+  let yMiss = y + 13;
+  const missingSlice = result.missing_skills.slice(0, 5);
   if (missingSlice.length === 0) {
     doc.text("• Perfect! No critical skill gaps found.", 116, yMiss);
   } else {
     missingSlice.forEach((skill) => {
-      if (yMiss < 178) {
-        doc.text(`[GAP]  ${skill}`, 116, yMiss);
-        yMiss += 5.5;
-      }
+      doc.text(`[GAP]  ${skill}`, 116, yMiss);
+      yMiss += 5;
     });
-    if (result.missing_skills.length > 10) {
-      doc.text(`+ ${result.missing_skills.length - 10} more gaps detected...`, 116, yMiss);
+    if (result.missing_skills.length > 5) {
+      doc.text(`+ ${result.missing_skills.length - 5} more gaps detected...`, 116, yMiss);
     }
   }
+  y += 52;
 
-  // --- Section: AI Recommendations ---
+  // --- AI Recommendations ---
+  ensureSpace(40);
   setText(primaryColor);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("STRATEGIC RECOMMENDATIONS FOR IMPROVEMENT", 15, 194);
-  doc.line(15, 196, 195, 196);
+  doc.setFontSize(11);
+  doc.text("AI STRATEGIC RECOMMENDATIONS", 15, y);
+  doc.setDrawColor(borderLine[0], borderLine[1], borderLine[2]);
+  doc.line(15, y + 2, 195, y + 2);
+  y += 8;
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.5);
+  doc.setFontSize(8.5);
   doc.setTextColor(40, 40, 40);
-  let ySug = 203;
   result.suggestions.forEach((sug, idx) => {
-    // Strip bold markers if any
-    const cleanSug = sug.replace(/\*\*/g, "");
+    const cleanSug = sug.replace(/\*/g, "");
     const splitSug = doc.splitTextToSize(`${idx + 1}. ${cleanSug}`, 180);
+    ensureSpace(splitSug.length * 4.5 + 2);
     splitSug.forEach((line: string) => {
-      if (ySug < 280) {
-        doc.text(line, 15, ySug);
-        ySug += 5;
-      }
+      doc.text(line, 15, y);
+      y += 4.5;
     });
-    ySug += 2.5; // space between suggestions
+    y += 1.5;
   });
+  y += 4;
 
-  // Footer on page 1
-  doc.setFontSize(8);
-  doc.setTextColor(150, 150, 150);
-  doc.text("Confidential ATS Score Report • Intuitive AI Resume Grader Ecosystem", 15, 287);
-  doc.text("Page 1 of 1", 185, 287);
+  // --- Portfolio Projects ---
+  if (result.suggested_projects && result.suggested_projects.length > 0) {
+    ensureSpace(30);
+    setText(primaryColor);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("SUGGESTED PORTFOLIO PROJECTS TO BUILD", 15, y);
+    doc.line(15, y + 2, 195, y + 2);
+    y += 8;
 
-  // Trigger download
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(40, 40, 40);
+    result.suggested_projects.forEach((proj) => {
+      const splitProj = doc.splitTextToSize(`• ${proj}`, 180);
+      ensureSpace(splitProj.length * 4.5 + 1);
+      splitProj.forEach((line: string) => {
+        doc.text(line, 15, y);
+        y += 4.5;
+      });
+      y += 1;
+    });
+    y += 4;
+  }
+
+  // --- Recommended Certifications & Career Advice ---
+  if (result.recommended_certifications && result.recommended_certifications.length > 0) {
+    ensureSpace(30);
+    setText(primaryColor);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("RECOMMENDED INDUSTRY CERTIFICATIONS", 15, y);
+    doc.line(15, y + 2, 195, y + 2);
+    y += 8;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    result.recommended_certifications.forEach((cert) => {
+      ensureSpace(5);
+      doc.text(`✔  ${cert}`, 15, y);
+      y += 5;
+    });
+    y += 4;
+  }
+
+  // Dynamic Page Numbering & Footer stamping on each page
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184); // Slate 400
+    doc.setDrawColor(borderLine[0], borderLine[1], borderLine[2]);
+    doc.line(15, 282, 195, 282); // Clean line at the bottom
+    doc.text("Confidential ATS Score Report • Premium AI Resume Grader Ecosystem", 15, 287);
+    doc.text(`Page ${i} of ${pageCount}`, 178, 287);
+  }
+
   const safeName = candidateName.replace(/\s+/g, "_").toLowerCase();
   doc.save(`${safeName}_ats_report.pdf`);
 }
